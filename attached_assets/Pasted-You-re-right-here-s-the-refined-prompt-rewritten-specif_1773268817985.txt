@@ -1,0 +1,138 @@
+You're right — here's the refined prompt rewritten specifically for a web app:
+
+Build a Swipeable Bridal Makeup Artist Discovery Web App with Firebase + Personal Admin Panel
+Build a React (Vite) single-page web application. It has two sides: a public-facing swipe interface for brides, and a password-protected admin panel for the owner to manage all artist content without touching code.
+
+Tech Stack
+
+React + Vite
+Firebase Firestore
+Firebase Storage
+Firebase Authentication (email/password, single admin user)
+react-tinder-card
+Tailwind CSS
+
+
+Routing
+/          → Public swipe interface (brides)
+/saved     → Saved artists list
+/admin     → Login page
+/admin/dashboard → Artist management (protected)
+/admin/add      → Add new artist form (protected)
+/admin/edit/:id → Edit existing artist (protected)
+
+Firestore Structure
+Collection: artists
+name: string
+city: string           "Toronto" | "Waterloo"
+trialPrice: number
+weddingPrice: number
+style: string
+rating: number
+reviewCount: number
+skinTones: array       e.g. [1,2,3,4,5,6] Fitzpatrick scale
+hairTypes: array       e.g. ["Fine","Coily","Thick","Wavy"]
+diversityNote: string
+profileImageUrl: string
+active: boolean
+createdAt: timestamp
+Subcollection: artists/{id}/portfolio
+imageUrl: string
+caption: string
+order: number
+
+Firebase Storage Structure
+/artists/{artistId}/profile/profile.jpg
+/artists/{artistId}/portfolio/1.jpg
+/artists/{artistId}/portfolio/2.jpg
+/artists/{artistId}/portfolio/3.jpg
+
+Public Web Interface (/)
+Desktop and mobile responsive. Centered card layout, max-width 480px, with the stack visible behind the active card.
+Each card shows:
+
+Full-bleed portrait photo with gradient overlay
+Star rating and review count
+Artist name (large serif font)
+City
+Style tag pill
+Two price badges side by side: Trial $250 and Wedding $450 — clearly labelled, visually distinct
+View Diversity button → slides up a bottom sheet showing Fitzpatrick scale swatches (highlighted = tones artist works with), hair type chips, and a personal note
+View Profile button → opens a full modal with swipeable image carousel, bio, and prices
+
+Navigation bar:
+
+Logo left
+City filter tabs center: All | Toronto | Waterloo
+Saved heart icon right (links to /saved)
+
+Swipe controls:
+
+Drag card left or right
+✕ and ♥ buttons below card
+PASS / SAVE stamp overlays appear during drag
+
+
+Saved Page (/saved)
+List of hearted artists showing thumbnail, name, city, style, trial price, and wedding price. Tap any row to open their full profile modal.
+
+Admin Login (/admin)
+Simple centered login form. Email and password fields. On success, redirect to /admin/dashboard. Use Firebase Auth. Only one admin account needed.
+
+Admin Dashboard (/admin/dashboard)
+Artist table with columns:
+
+Photo thumbnail
+Name
+City
+Trial Price
+Wedding Price
+Active toggle (live switch — flips Firestore active field instantly)
+Edit button
+Delete button (with confirmation dialog)
+
+Add New Artist button → goes to /admin/add
+
+Add / Edit Artist Form (/admin/add and /admin/edit/:id)
+A clean web form with the following fields:
+
+Name (text)
+City (dropdown: Toronto / Waterloo)
+Style (text)
+Trial Price (number)
+Wedding Price (number)
+Rating (number, e.g. 4.9)
+Review Count (number)
+Skin Tones (checkbox grid using Fitzpatrick scale 1–6 with color swatches)
+Hair Types (multi-select checkboxes)
+Diversity Note (textarea)
+Profile Photo (drag and drop upload → uploads to Firebase Storage → auto-fills URL field)
+Portfolio Photos (multi-image upload → each saved to Storage → added to portfolio subcollection with order preserved)
+Portfolio reordering (drag to reorder before saving)
+Active toggle
+
+Save button writes everything to Firestore and redirects to dashboard. Artist appears live on the public site immediately.
+
+Security Rules
+Firestore:
+artists collection — public read, authenticated write only
+portfolio subcollection — same
+Storage:
+/artists/** — public read, authenticated write only
+
+Design
+
+Background: #F7F2EE warm cream
+Accent: #B5706A dusty rose
+Headings: Cormorant Garamond (Google Fonts)
+Body: Jost or DM Sans
+Cards: rounded corners, soft drop shadow, full-bleed photo
+Admin panel: clean, minimal, white with the same accent color
+
+
+Deliverables
+
+Full React + Vite web app with all routes above
+Firebase config using environment variables (.env file)
+Firestore and Storage security rules
+README with step-by-step instructions: how to set up Firebase, how to deploy, and how to add a new artist through the admin panel
