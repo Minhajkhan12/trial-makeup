@@ -29,7 +29,7 @@ export default function Home() {
             <div className="bg-primary/10 p-2 rounded-lg">
               <Sparkles className="text-primary" size={24} />
             </div>
-            <h1 className="text-2xl font-serif font-bold text-foreground tracking-wide">Bridal Beauty Match</h1>
+            <h1 className="text-2xl font-serif font-bold text-foreground tracking-wide">Beauty Booked</h1>
           </div>
           
           <div className="flex items-center gap-6">
