@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { MapPin, Star, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Artist } from '../data/artists';
+import { Artist } from '../lib/artists';
 
 interface SwipeCardProps {
   artist: Artist;

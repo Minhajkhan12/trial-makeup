@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { Sparkles, UserCircle, Settings2, X, Heart, MessageCircle } from 'lucide-react';
+import { Sparkles, UserCircle, Settings2, X, Heart, MessageCircle, Loader2 } from 'lucide-react';
 import { SwipeCard } from '../components/SwipeCard';
-import { artists } from '../data/artists';
+import { fetchArtists, Artist } from '../lib/artists';
 
 export default function Home() {
-  const [deck, setDeck] = useState(artists);
+  const [allArtists, setAllArtists] = useState<Artist[]>([]);
+  const [deck, setDeck] = useState<Artist[]>([]);
   const [matches, setMatches] = useState<string[]>([]);
   const [savedArtists, setSavedArtists] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadArtists();
+  }, []);
+
+  async function loadArtists() {
+    try {
+      setLoading(true);
+      setError(null);
+      const artists = await fetchArtists();
+      setAllArtists(artists);
+      setDeck(artists);
+    } catch (err: any) {
+      console.error('Failed to fetch artists:', err);
+      setError(err.message || 'Failed to load artists');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const handleSwipeLeft = () => {
     setDeck(prev => prev.slice(1));
@@ -84,38 +106,60 @@ export default function Home() {
         {/* Center - The Swipe Deck */}
         <div className="relative w-full max-w-md h-[70vh] min-h-[600px] flex flex-col">
           <div className="relative flex-1 w-full">
-            <AnimatePresence>
-              {deck.length > 0 ? (
-                deck.map((artist, index) => (
-                  <SwipeCard
-                    key={artist.id}
-                    artist={artist}
-                    active={index === 0}
-                    onSwipeLeft={handleSwipeLeft}
-                    onSwipeRight={handleSwipeRight}
-                  />
-                )).reverse() // Reverse so the first item is on top in DOM
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
-                  <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                    <Sparkles className="text-primary" size={40} />
-                  </div>
-                  <h2 className="text-3xl font-serif font-bold mb-3">You're all caught up!</h2>
-                  <p className="text-lg text-muted-foreground mb-8">We're searching for more amazing makeup artists in your area.</p>
-                  <button 
-                    onClick={() => setDeck(artists)}
-                    className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-semibold text-lg hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25 active:scale-95"
-                    data-testid="button-reset-deck"
-                  >
-                    Find More Artists
-                  </button>
+            {loading ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+                <Loader2 className="animate-spin text-primary mb-4" size={48} />
+                <p className="text-lg text-muted-foreground">Loading artists...</p>
+              </div>
+            ) : error ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+                <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                  <X className="text-red-500" size={40} />
                 </div>
-              )}
-            </AnimatePresence>
+                <h2 className="text-2xl font-serif font-bold mb-3">Something went wrong</h2>
+                <p className="text-muted-foreground mb-6">{error}</p>
+                <button 
+                  onClick={loadArtists}
+                  className="bg-primary text-primary-foreground px-8 py-3 rounded-full font-semibold hover:bg-primary/90 transition-all shadow-lg active:scale-95"
+                  data-testid="button-retry"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : (
+              <AnimatePresence>
+                {deck.length > 0 ? (
+                  deck.map((artist, index) => (
+                    <SwipeCard
+                      key={artist.id}
+                      artist={artist}
+                      active={index === 0}
+                      onSwipeLeft={handleSwipeLeft}
+                      onSwipeRight={handleSwipeRight}
+                    />
+                  )).reverse()
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+                    <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                      <Sparkles className="text-primary" size={40} />
+                    </div>
+                    <h2 className="text-3xl font-serif font-bold mb-3">You're all caught up!</h2>
+                    <p className="text-lg text-muted-foreground mb-8">We're searching for more amazing makeup artists in your area.</p>
+                    <button 
+                      onClick={() => setDeck(allArtists)}
+                      className="bg-primary text-primary-foreground px-8 py-4 rounded-full font-semibold text-lg hover:bg-primary/90 transition-all shadow-lg hover:shadow-primary/25 active:scale-95"
+                      data-testid="button-reset-deck"
+                    >
+                      Find More Artists
+                    </button>
+                  </div>
+                )}
+              </AnimatePresence>
+            )}
           </div>
 
           {/* Web Bottom Controls */}
-          {deck.length > 0 && (
+          {!loading && !error && deck.length > 0 && (
             <div className="mt-8 flex justify-center gap-8 items-center z-10">
               <button 
                 onClick={handleSwipeLeft}
