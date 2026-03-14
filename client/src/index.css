@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'DM Sans', sans-serif;
-  --font-serif: 'Cormorant Garamond', serif;
+  --font-sans: 'Lato', sans-serif;
+  --font-serif: 'Playfair Display', serif;
   
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -29,38 +29,34 @@
 }
 
 :root {
-  /* 
-    Background: #F7F2EE warm cream
-    Accent: #B5706A dusty rose
-  */
+  /* Soft, elegant bridal palette */
+  --background: 30 50% 98%;      /* Warm off-white */
+  --foreground: 20 20% 20%;      /* Soft dark brown/charcoal */
   
-  --background: 28 35% 95%;      /* #F7F2EE */
-  --foreground: 20 20% 20%;      
-  
-  --card: 0 0% 100%;             
+  --card: 0 0% 100%;             /* Pure white */
   --card-foreground: 20 20% 20%;
   
   --popover: 0 0% 100%;
   --popover-foreground: 20 20% 20%;
   
-  --primary: 355 35% 56%;        /* #B5706A */
+  --primary: 340 40% 70%;        /* Soft blush pink */
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 28 20% 90%;       
+  --secondary: 40 30% 90%;       /* Cream/Champagne */
   --secondary-foreground: 20 20% 20%;
   
-  --muted: 28 20% 90%;
+  --muted: 30 20% 94%;
   --muted-foreground: 25 15% 45%;
   
-  --accent: 355 30% 92%;         
-  --accent-foreground: 355 35% 56%;
+  --accent: 340 30% 92%;         /* Very light blush */
+  --accent-foreground: 340 50% 40%;
   
   --destructive: 0 70% 60%;
   --destructive-foreground: 0 0% 100%;
   
-  --border: 28 20% 85%;
-  --input: 28 20% 85%;
-  --ring: 355 35% 56%;
+  --border: 30 20% 90%;
+  --input: 30 20% 90%;
+  --ring: 340 40% 70%;
   
   --radius: 1rem;
 }
@@ -70,7 +66,8 @@
     @apply border-border;
   }
   body {
-    @apply font-sans antialiased bg-background text-foreground overflow-x-hidden;
+    @apply font-sans antialiased bg-background text-foreground overflow-hidden;
+    /* Prevent pull-to-refresh on mobile for a better app-like feel */
     overscroll-behavior-y: none;
   }
   h1, h2, h3, h4, h5, h6 {
