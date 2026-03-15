@@ -18,7 +18,7 @@ PORT = "5000"
 
 [deployment]
 deploymentTarget = "static"
-build = ["bash", "-c", "rm -rf dist && npm run build"]
+build = ["bash", "-c", "rm -rf dist && npm ci && npm run build"]
 run = ["npm", "run", "start"]
 publicDir = "dist/public"
 
