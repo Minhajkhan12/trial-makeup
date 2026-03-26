@@ -27,7 +27,7 @@ export const artists: Artist[] = [
     rating: 4.9,
     reviews: 128,
     bio: 'Specializing in soft glam that enhances your natural beauty. I believe every bride should look like the best version of themselves on their big day.',
-    images: [artist1_1, artist1_2]
+    images: [artist1_1, artist1_2],
   },
   {
     id: '2',
@@ -39,7 +39,7 @@ export const artists: Artist[] = [
     rating: 4.8,
     reviews: 94,
     bio: 'For the bride who wants to make a statement. Bold lashes, flawless contour, and makeup that lasts through tears and dancing.',
-    images: [artist2_1]
+    images: [artist2_1],
   },
   {
     id: '3',
@@ -51,6 +51,6 @@ export const artists: Artist[] = [
     rating: 5.0,
     reviews: 215,
     bio: 'Skin-first approach to bridal beauty. I focus on glowing, hydrated skin and minimal makeup that lets your true self shine through.',
-    images: [artist3_1]
-  }
+    images: [artist3_1],
+  },
 ];
