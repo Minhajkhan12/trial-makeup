@@ -38,7 +38,7 @@ async function buildAll() {
   console.log("building client...");
   await viteBuild();
 
-  await copyFile("dist/public/index.html", "dist/public/404.html");
+  await copyFile("dist/index.html", "dist/404.html");
   console.log("created 404.html for SPA routing fallback");
 
   console.log("building server...");
