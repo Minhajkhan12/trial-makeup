@@ -1,4 +1,4 @@
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 
 export type Artist = {
@@ -16,8 +16,15 @@ export type Artist = {
 
 export async function fetchArtists(): Promise<Artist[]> {
   const artistsRef = collection(db, 'artists');
-  const q = query(artistsRef, orderBy('name'));
-  const snapshot = await getDocs(q);
+  const snapshot = await getDocs(artistsRef);
+
+  console.log('[Firestore] snapshot.size:', snapshot.size);
+  console.log('[Firestore] empty:', snapshot.empty);
+
+  snapshot.docs.forEach((doc, i) => {
+    console.log(`[Firestore] doc[${i}] id:`, doc.id);
+    console.log(`[Firestore] doc[${i}] data:`, JSON.stringify(doc.data()));
+  });
 
   return snapshot.docs.map(doc => ({
     id: doc.id,
