@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: 'Lato', sans-serif;
-  --font-serif: 'Playfair Display', serif;
+  --font-sans: 'Jost', sans-serif;
+  --font-serif: 'Cormorant Garamond', serif;
   
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
