@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
-import { MapPin, Star, Heart, X, ChevronRight } from 'lucide-react';
+import { MapPin, Star, Heart, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Artist } from '../lib/artists';
 
 interface SwipeCardProps {
@@ -22,20 +22,20 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
     else if (info.offset.x < -100) onSwipeLeft();
   };
 
-  const handleImageTap = (e: React.MouseEvent) => {
-    if (Math.abs((e as any).movementX) > 3) return;
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const tapX = e.clientX - rect.left;
-    if (tapX > rect.width * 0.55) {
-      setCurrentImageIndex(prev => Math.min(prev + 1, artist.images.length - 1));
-    } else if (tapX < rect.width * 0.45) {
-      setCurrentImageIndex(prev => Math.max(prev - 1, 0));
-    }
+  const nextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => Math.min(prev + 1, images.length - 1));
+  };
+
+  const prevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => Math.max(prev - 1, 0));
   };
 
   if (!active) return null;
 
   const images = artist.images?.length ? artist.images : ['/placeholder.jpg'];
+  const total = images.length;
 
   return (
     <motion.div
@@ -49,7 +49,6 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
       whileDrag={{ scale: 1.02, cursor: 'grabbing' }}
       className="absolute inset-0 w-full h-full rounded-3xl overflow-hidden cursor-grab shadow-2xl"
       data-testid={`card-artist-${artist.id}`}
-      onClick={handleImageTap}
     >
       {/* Full-screen image */}
       <img
@@ -60,7 +59,16 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
       />
 
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/20 pointer-events-none" />
+
+      {/* Image counter — top right */}
+      {total > 1 && (
+        <div className="absolute top-4 right-4 z-20 bg-black/35 backdrop-blur-sm rounded-full px-3 py-1 pointer-events-none">
+          <span className="text-white text-xs font-medium tracking-wide">
+            {currentImageIndex + 1} / {total}
+          </span>
+        </div>
+      )}
 
       {/* LOVE stamp */}
       <motion.div
@@ -78,16 +86,33 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
         <span className="text-rose-400 font-bold text-2xl tracking-widest uppercase">Nope</span>
       </motion.div>
 
-      {/* Swipe hint */}
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none opacity-50">
-        <ChevronRight className="text-white drop-shadow-lg" size={28} />
-      </div>
+      {/* Left image nav chevron */}
+      {total > 1 && currentImageIndex > 0 && (
+        <button
+          onClick={prevImage}
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/25 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/40 transition-all"
+          data-testid="button-prev-image"
+        >
+          <ChevronLeft size={22} />
+        </button>
+      )}
+
+      {/* Right image nav chevron */}
+      {total > 1 && currentImageIndex < total - 1 && (
+        <button
+          onClick={nextImage}
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/25 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/40 transition-all"
+          data-testid="button-next-image"
+        >
+          <ChevronRight size={22} />
+        </button>
+      )}
 
       {/* Bottom info overlay */}
       <div className="absolute bottom-0 left-0 right-0 z-10 px-5 pt-6 pb-[72px]">
 
         {/* Dot indicators */}
-        {images.length > 1 && (
+        {total > 1 && (
           <div className="flex gap-1.5 mb-4">
             {images.map((_, i) => (
               <div

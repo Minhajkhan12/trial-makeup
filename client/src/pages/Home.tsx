@@ -1,17 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { useLocation } from 'wouter';
 import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote } from 'lucide-react';
 import { SwipeCard } from '../components/SwipeCard';
 import { fetchArtists, Artist } from '../lib/artists';
 
 export default function Home() {
+  const [, navigate] = useLocation();
   const [allArtists, setAllArtists] = useState<Artist[]>([]);
   const [deck, setDeck] = useState<Artist[]>([]);
-  const [savedArtists, setSavedArtists] = useState<string[]>([]);
+  const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { loadArtists(); }, []);
+  useEffect(() => {
+    loadArtists();
+    const saved = JSON.parse(localStorage.getItem('savedArtists') || '[]');
+    setSavedCount(saved.length);
+  }, []);
 
   async function loadArtists() {
     try {
@@ -28,8 +34,15 @@ export default function Home() {
   }
 
   const handleSwipeLeft = () => setDeck(prev => prev.slice(1));
+
   const handleSwipeRight = () => {
-    setSavedArtists(prev => [...prev, deck[0].id]);
+    const artist = deck[0];
+    const existing: Artist[] = JSON.parse(localStorage.getItem('savedArtists') || '[]');
+    if (!existing.find(a => a.id === artist.id)) {
+      const updated = [...existing, artist];
+      localStorage.setItem('savedArtists', JSON.stringify(updated));
+      setSavedCount(updated.length);
+    }
     setDeck(prev => prev.slice(1));
   };
 
@@ -43,9 +56,13 @@ export default function Home() {
             <h1 className="text-xl font-serif font-semibold text-foreground tracking-wide">BeautyBooked</h1>
           </div>
           <div className="flex items-center gap-5">
-            <button className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-sm">
-              <Heart size={17} className={savedArtists.length > 0 ? 'fill-primary text-primary' : ''} />
-              <span>Saved ({savedArtists.length})</span>
+            <button
+              onClick={() => navigate('/saved')}
+              className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-sm"
+              data-testid="button-nav-saved"
+            >
+              <Heart size={17} className={savedCount > 0 ? 'fill-primary text-primary' : ''} />
+              <span>Saved ({savedCount})</span>
             </button>
             <button className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-sm">
               <MessageCircle size={17} />
@@ -70,7 +87,6 @@ export default function Home() {
             Trial first, commitment later. Every artist on BeautyBooked is handpicked for responsiveness and quality — no endless inquiry forms. Just real conversations with artists you can trust.
           </p>
 
-          {/* Swipe instructions */}
           <div className="space-y-3 mb-8">
             <div className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-border shadow-sm">
               <div className="w-9 h-9 rounded-full bg-rose-50 flex items-center justify-center shrink-0">
@@ -92,7 +108,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Testimonial */}
           <div className="bg-white rounded-2xl border border-border p-4 shadow-sm mb-4">
             <Quote size={16} className="text-primary mb-2 opacity-60" />
             <p className="text-sm text-foreground leading-relaxed italic font-serif">
@@ -101,7 +116,6 @@ export default function Home() {
             <p className="text-xs text-muted-foreground mt-2">— September 2026 bride</p>
           </div>
 
-          {/* Stat */}
           <p className="text-xs text-muted-foreground text-center tracking-wide">
             Join <span className="text-foreground font-semibold">200+ brides</span> who found their artist on BeautyBooked
           </p>
