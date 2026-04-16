@@ -4,13 +4,22 @@ import { CheckCircle, Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
+interface BookingData {
+  email: string;
+  artistId: string;
+  artistName: string;
+  trialPrice: string;
+  amountPaid: number;
+}
+
 export default function CheckoutSuccess() {
   const [, navigate] = useLocation();
   const [status, setStatus] = useState<'loading' | 'confirmed' | 'error'>('loading');
-  const [email, setEmail] = useState('');
+  const [booking, setBooking] = useState<BookingData | null>(null);
 
   useEffect(() => {
-    const sessionId = new URLSearchParams(window.location.search).get('session_id');
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
     if (!sessionId) { setStatus('error'); return; }
 
     fetch(`/api/verify-session?session_id=${sessionId}`)
@@ -18,12 +27,22 @@ export default function CheckoutSuccess() {
       .then(async data => {
         if (!data.paid) { setStatus('error'); return; }
 
-        setEmail(data.email || '');
+        const bookingData: BookingData = {
+          email: data.email || '',
+          artistId: data.artistId || '',
+          artistName: data.artistName || '',
+          trialPrice: data.trialPrice || '50',
+          amountPaid: data.amountPaid || 50,
+        };
+
+        setBooking(bookingData);
 
         try {
           await addDoc(collection(db, 'bookings'), {
-            email: data.email,
-            artistIds: data.artistIds,
+            email: bookingData.email,
+            artistId: bookingData.artistId,
+            artistName: bookingData.artistName,
+            trialPriceCharged: bookingData.amountPaid,
             paymentStatus: 'paid',
             sessionId,
             createdAt: serverTimestamp(),
@@ -32,7 +51,6 @@ export default function CheckoutSuccess() {
           console.error('Failed to record booking in Firestore:', e);
         }
 
-        // Clear saved artists after successful booking
         localStorage.removeItem('savedArtists');
         setStatus('confirmed');
       })
@@ -87,15 +105,26 @@ export default function CheckoutSuccess() {
 
           <h2 className="text-3xl font-serif font-semibold mb-3">You're booked!</h2>
 
-          <p className="text-muted-foreground mb-8 leading-relaxed">
-            Your trial booking is confirmed{email ? ` — a receipt has been sent to ${email}` : ''}. The artist will contact you shortly to confirm your trial date and discuss your bridal look.
+          <p className="text-muted-foreground mb-2 leading-relaxed text-lg">
+            Your trial with{' '}
+            <span className="text-foreground font-semibold font-serif">
+              {booking?.artistName || 'your selected artist'}
+            </span>{' '}
+            is confirmed.
+          </p>
+
+          <p className="text-muted-foreground mb-8 text-sm">
+            {booking?.email
+              ? `A receipt has been sent to ${booking.email}.`
+              : ''}{' '}
+            They will contact you shortly to confirm timing.
           </p>
 
           <div className="bg-white rounded-2xl border border-border p-5 text-left mb-8 shadow-sm">
             <h3 className="font-serif font-semibold text-lg mb-3">What happens next</h3>
             <ol className="space-y-3">
               {[
-                'The artist reviews your booking and reaches out within 24 hours.',
+                `${booking?.artistName || 'Your artist'} reviews your booking and reaches out within 24 hours.`,
                 'You confirm your trial date and location together.',
                 'Attend your trial and share feedback.',
                 'Book your wedding day with full confidence.',
