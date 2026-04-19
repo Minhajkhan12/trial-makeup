@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useLocation } from 'wouter';
-import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote } from 'lucide-react';
+import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote, MapPin } from 'lucide-react';
 import { SwipeCard } from '../components/SwipeCard';
-import { fetchArtists, Artist } from '../lib/artists';
+import { fetchArtists, Artist, REGIONS, Region } from '../lib/artists';
 
 export default function Home() {
   const [, navigate] = useLocation();
   const [allArtists, setAllArtists] = useState<Artist[]>([]);
-  const [deck, setDeck] = useState<Artist[]>([]);
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
+  const [selectedRegion, setSelectedRegion] = useState<Region>('all');
   const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,7 @@ export default function Home() {
       setError(null);
       const artists = await fetchArtists();
       setAllArtists(artists);
-      setDeck(artists);
+      setSeenIds(new Set());
     } catch (err: any) {
       setError(err.message || 'Failed to load artists');
     } finally {
@@ -33,17 +34,33 @@ export default function Home() {
     }
   }
 
-  const handleSwipeLeft = () => setDeck(prev => prev.slice(1));
+  // Filtered list based on selected region, minus already-seen cards
+  const deck = useMemo(() => {
+    const filtered = selectedRegion === 'all'
+      ? allArtists
+      : allArtists.filter(a => a.region === selectedRegion);
+    return filtered.filter(a => !seenIds.has(a.id));
+  }, [allArtists, selectedRegion, seenIds]);
+
+  const handleSwipeLeft = () => {
+    if (deck[0]) setSeenIds(prev => new Set([...prev, deck[0].id]));
+  };
 
   const handleSwipeRight = () => {
     const artist = deck[0];
+    if (!artist) return;
     const existing: Artist[] = JSON.parse(localStorage.getItem('savedArtists') || '[]');
     if (!existing.find(a => a.id === artist.id)) {
       const updated = [...existing, artist];
       localStorage.setItem('savedArtists', JSON.stringify(updated));
       setSavedCount(updated.length);
     }
-    setDeck(prev => prev.slice(1));
+    setSeenIds(prev => new Set([...prev, artist.id]));
+  };
+
+  const resetRegion = (region: Region) => {
+    setSelectedRegion(region);
+    setSeenIds(new Set());
   };
 
   return (
@@ -121,66 +138,104 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Card stack */}
-        <div className="relative w-full max-w-[400px] h-[78vh] min-h-[580px]">
-          {loading ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl shadow-xl border border-border">
-              <Loader2 className="animate-spin text-primary mb-4" size={44} />
-              <p className="text-muted-foreground">Loading artists...</p>
-            </div>
-          ) : error ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
-              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                <X className="text-red-400" size={30} />
-              </div>
-              <h2 className="text-2xl font-serif font-semibold mb-2">Something went wrong</h2>
-              <p className="text-muted-foreground text-sm mb-6">{error}</p>
+        {/* Card stack + region filters */}
+        <div className="flex flex-col items-center gap-5 w-full max-w-[400px]">
+
+          {/* Region filter buttons */}
+          <div className="flex flex-wrap gap-2 justify-center w-full" data-testid="region-filters">
+            {REGIONS.map(r => (
               <button
-                onClick={loadArtists}
-                className="bg-primary text-primary-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all shadow-md active:scale-95"
-                data-testid="button-retry"
+                key={r.key}
+                onClick={() => resetRegion(r.key)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  selectedRegion === r.key
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-white text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+                }`}
+                data-testid={`button-region-${r.key}`}
               >
-                Try Again
+                {r.key !== 'all' && <MapPin size={12} />}
+                {r.label}
               </button>
-            </div>
-          ) : deck.length === 0 && allArtists.length === 0 ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
-              <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
-                <Sparkles className="text-primary" size={34} />
+            ))}
+          </div>
+
+          {/* Card area */}
+          <div className="relative w-full h-[72vh] min-h-[560px]">
+            {loading ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl shadow-xl border border-border">
+                <Loader2 className="animate-spin text-primary mb-4" size={44} />
+                <p className="text-muted-foreground">Loading artists...</p>
               </div>
-              <h2 className="text-2xl font-serif font-semibold mb-2">No artists yet</h2>
-              <p className="text-muted-foreground text-sm">Check back soon — we're adding amazing makeup artists to your area.</p>
-            </div>
-          ) : (
-            <AnimatePresence>
-              {deck.length > 0 ? (
-                deck.map((artist, index) => (
-                  <SwipeCard
-                    key={artist.id}
-                    artist={artist}
-                    active={index === 0}
-                    onSwipeLeft={handleSwipeLeft}
-                    onSwipeRight={handleSwipeRight}
-                  />
-                )).reverse()
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
-                    <Sparkles className="text-primary" size={34} />
-                  </div>
-                  <h2 className="text-2xl font-serif font-semibold mb-2">You're all caught up!</h2>
-                  <p className="text-muted-foreground text-sm mb-7">More artists coming soon.</p>
-                  <button
-                    onClick={() => setDeck(allArtists)}
-                    className="bg-primary text-primary-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all shadow-md active:scale-95"
-                    data-testid="button-reset-deck"
-                  >
-                    Start Over
-                  </button>
+            ) : error ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
+                  <X className="text-red-400" size={30} />
                 </div>
-              )}
-            </AnimatePresence>
-          )}
+                <h2 className="text-2xl font-serif font-semibold mb-2">Something went wrong</h2>
+                <p className="text-muted-foreground text-sm mb-6">{error}</p>
+                <button
+                  onClick={loadArtists}
+                  className="bg-primary text-primary-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all shadow-md active:scale-95"
+                  data-testid="button-retry"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : allArtists.length === 0 ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
+                  <Sparkles className="text-primary" size={34} />
+                </div>
+                <h2 className="text-2xl font-serif font-semibold mb-2">No artists yet</h2>
+                <p className="text-muted-foreground text-sm">Check back soon — we're adding amazing makeup artists to your area.</p>
+              </div>
+            ) : (
+              <AnimatePresence>
+                {deck.length > 0 ? (
+                  deck.map((artist, index) => (
+                    <SwipeCard
+                      key={artist.id}
+                      artist={artist}
+                      active={index === 0}
+                      onSwipeLeft={handleSwipeLeft}
+                      onSwipeRight={handleSwipeRight}
+                    />
+                  )).reverse()
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
+                      <Sparkles className="text-primary" size={34} />
+                    </div>
+                    <h2 className="text-2xl font-serif font-semibold mb-2">You're all caught up!</h2>
+                    <p className="text-muted-foreground text-sm mb-7">
+                      {selectedRegion === 'all'
+                        ? 'More artists coming soon.'
+                        : `No more artists in this region. Try another area or view all.`}
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      <button
+                        onClick={() => setSeenIds(new Set())}
+                        className="bg-primary text-primary-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all shadow-md active:scale-95"
+                        data-testid="button-reset-deck"
+                      >
+                        Start Over
+                      </button>
+                      {selectedRegion !== 'all' && (
+                        <button
+                          onClick={() => resetRegion('all')}
+                          className="bg-white border border-border text-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:border-primary/50 transition-all"
+                          data-testid="button-view-all"
+                        >
+                          View All Regions
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </AnimatePresence>
+            )}
+          </div>
         </div>
       </main>
     </div>
