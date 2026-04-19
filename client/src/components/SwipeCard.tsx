@@ -136,12 +136,19 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
           <span>{artist.location}</span>
         </div>
 
-        {/* Style + Rating */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-[11px] uppercase tracking-widest text-white/65 border border-white/25 rounded-full px-3 py-1">
-            {artist.style}
-          </span>
-          <div className="flex items-center gap-1 text-sm text-white">
+        {/* Diversity tags + Rating */}
+        <div className="flex items-center justify-between mb-4 gap-2">
+          <div className="flex flex-wrap gap-1.5 min-w-0">
+            {(artist.diversity ?? []).slice(0, 3).map(tag => (
+              <span
+                key={tag}
+                className="text-[10px] uppercase tracking-widest text-white/80 border border-white/25 rounded-full px-2.5 py-0.5 whitespace-nowrap"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 text-sm text-white shrink-0">
             <Star size={13} className="fill-amber-400 text-amber-400" />
             <span className="font-semibold">{artist.rating}</span>
             <span className="text-white/55 text-xs">({artist.reviews})</span>

@@ -130,11 +130,11 @@ export default function Saved() {
                         <span>{artist.location}</span>
                       </div>
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                        {artist.style && (
-                          <span className="text-xs text-muted-foreground border border-border rounded-full px-2.5 py-0.5">
-                            {artist.style}
+                        {(artist.diversity ?? []).slice(0, 2).map(tag => (
+                          <span key={tag} className="text-xs text-muted-foreground border border-border rounded-full px-2.5 py-0.5">
+                            {tag}
                           </span>
-                        )}
+                        ))}
                         {artist.rating && (
                           <div className="flex items-center gap-1 text-xs">
                             <Star size={11} className="fill-amber-400 text-amber-400" />

@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useLocation } from 'wouter';
 import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote, MapPin } from 'lucide-react';
 import { SwipeCard } from '../components/SwipeCard';
-import { fetchArtists, Artist, REGIONS, Region } from '../lib/artists';
+import { fetchArtists, Artist, REGIONS, Region, DIVERSITY_OPTIONS } from '../lib/artists';
 
 const HijabIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -17,6 +17,7 @@ export default function Home() {
   const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
   const [selectedRegion, setSelectedRegion] = useState<Region>('all');
   const [hijabOnly, setHijabOnly] = useState(false);
+  const [diversityFilter, setDiversityFilter] = useState<string>('all');
   const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,14 +42,15 @@ export default function Home() {
     }
   }
 
-  // Filtered list based on selected region + hijab filter, minus already-seen cards
+  // Filtered list based on selected region + hijab + diversity filters, minus already-seen cards
   const deck = useMemo(() => {
     let filtered = selectedRegion === 'all'
       ? allArtists
       : allArtists.filter(a => a.region === selectedRegion);
     if (hijabOnly) filtered = filtered.filter(a => a.hijabFriendly === true);
+    if (diversityFilter !== 'all') filtered = filtered.filter(a => (a.diversity ?? []).includes(diversityFilter));
     return filtered.filter(a => !seenIds.has(a.id));
-  }, [allArtists, selectedRegion, hijabOnly, seenIds]);
+  }, [allArtists, selectedRegion, hijabOnly, diversityFilter, seenIds]);
 
   const handleSwipeLeft = () => {
     if (deck[0]) setSeenIds(prev => new Set([...prev, deck[0].id]));
@@ -73,6 +75,11 @@ export default function Home() {
 
   const toggleHijabFilter = () => {
     setHijabOnly(prev => !prev);
+    setSeenIds(new Set());
+  };
+
+  const handleDiversityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDiversityFilter(e.target.value);
     setSeenIds(new Set());
   };
 
@@ -185,6 +192,30 @@ export default function Home() {
               <HijabIcon />
               Hijab Friendly
             </button>
+
+            {/* Diversity dropdown */}
+            <div className="relative">
+              <select
+                value={diversityFilter}
+                onChange={handleDiversityChange}
+                className={`appearance-none pl-4 pr-8 py-2 rounded-full text-sm font-medium border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                  diversityFilter !== 'all'
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-white text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+                }`}
+                data-testid="select-diversity"
+              >
+                <option value="all">All Ethnicities</option>
+                {DIVERSITY_OPTIONS.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
           </div>
 
           {/* Card area */}

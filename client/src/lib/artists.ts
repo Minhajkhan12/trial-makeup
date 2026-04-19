@@ -4,7 +4,7 @@ import { db } from './firebase';
 export type Artist = {
   id: string;
   name: string;
-  style: string;
+  diversity: string[];
   location: string;
   trialPrice: number;
   weddingPrice: number;
@@ -15,6 +15,14 @@ export type Artist = {
   region: string;
   hijabFriendly?: boolean;
 };
+
+export const DIVERSITY_OPTIONS = [
+  'South Asian',
+  'Caucasian',
+  'Mixed',
+  'Black',
+  'East Asian',
+] as const;
 
 export type Region = 'all' | 'winnipeg' | 'toronto' | 'waterloo';
 
