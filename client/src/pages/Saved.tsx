@@ -130,7 +130,7 @@ export default function Saved() {
                         <span>{artist.location}</span>
                       </div>
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                        {(artist.diversity ?? []).slice(0, 2).map(tag => (
+                        {(Array.isArray(artist.diversity) ? artist.diversity : []).slice(0, 2).map(tag => (
                           <span key={tag} className="text-xs text-muted-foreground border border-border rounded-full px-2.5 py-0.5">
                             {tag}
                           </span>

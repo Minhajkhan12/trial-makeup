@@ -139,7 +139,7 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
         {/* Diversity tags + Rating */}
         <div className="flex items-center justify-between mb-4 gap-2">
           <div className="flex flex-wrap gap-1.5 min-w-0">
-            {(artist.diversity ?? []).slice(0, 3).map(tag => (
+            {(Array.isArray(artist.diversity) ? artist.diversity : []).slice(0, 3).map(tag => (
               <span
                 key={tag}
                 className="text-[10px] uppercase tracking-widest text-white/80 border border-white/25 rounded-full px-2.5 py-0.5 whitespace-nowrap"

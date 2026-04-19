@@ -48,7 +48,7 @@ export default function Home() {
       ? allArtists
       : allArtists.filter(a => a.region === selectedRegion);
     if (hijabOnly) filtered = filtered.filter(a => a.hijabFriendly === true);
-    if (diversityFilter !== 'all') filtered = filtered.filter(a => (a.diversity ?? []).includes(diversityFilter));
+    if (diversityFilter !== 'all') filtered = filtered.filter(a => (Array.isArray(a.diversity) ? a.diversity : []).includes(diversityFilter));
     return filtered.filter(a => !seenIds.has(a.id));
   }, [allArtists, selectedRegion, hijabOnly, diversityFilter, seenIds]);
 
