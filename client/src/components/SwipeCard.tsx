@@ -90,10 +90,10 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
       {total > 1 && currentImageIndex > 0 && (
         <button
           onClick={prevImage}
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/25 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/40 transition-all"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-14 h-14 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all shadow-lg"
           data-testid="button-prev-image"
         >
-          <ChevronLeft size={22} />
+          <ChevronLeft size={34} strokeWidth={2.5} />
         </button>
       )}
 
@@ -101,10 +101,10 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
       {total > 1 && currentImageIndex < total - 1 && (
         <button
           onClick={nextImage}
-          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/25 backdrop-blur-sm text-white/70 hover:text-white hover:bg-black/40 transition-all"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-14 h-14 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all shadow-lg"
           data-testid="button-next-image"
         >
-          <ChevronRight size={22} />
+          <ChevronRight size={34} strokeWidth={2.5} />
         </button>
       )}
 

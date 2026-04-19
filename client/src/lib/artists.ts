@@ -13,6 +13,7 @@ export type Artist = {
   bio: string;
   images: string[];
   region: string;
+  hijabFriendly?: boolean;
 };
 
 export type Region = 'all' | 'winnipeg' | 'toronto' | 'waterloo';

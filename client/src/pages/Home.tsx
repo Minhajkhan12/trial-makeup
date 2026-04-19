@@ -5,11 +5,18 @@ import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote, MapPin }
 import { SwipeCard } from '../components/SwipeCard';
 import { fetchArtists, Artist, REGIONS, Region } from '../lib/artists';
 
+const HijabIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M12 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 10c-4.5 0-9 2.25-9 5v1h18v-1c0-2.75-4.5-5-9-5Z"/>
+  </svg>
+);
+
 export default function Home() {
   const [, navigate] = useLocation();
   const [allArtists, setAllArtists] = useState<Artist[]>([]);
   const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
   const [selectedRegion, setSelectedRegion] = useState<Region>('all');
+  const [hijabOnly, setHijabOnly] = useState(false);
   const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,13 +41,14 @@ export default function Home() {
     }
   }
 
-  // Filtered list based on selected region, minus already-seen cards
+  // Filtered list based on selected region + hijab filter, minus already-seen cards
   const deck = useMemo(() => {
-    const filtered = selectedRegion === 'all'
+    let filtered = selectedRegion === 'all'
       ? allArtists
       : allArtists.filter(a => a.region === selectedRegion);
+    if (hijabOnly) filtered = filtered.filter(a => a.hijabFriendly === true);
     return filtered.filter(a => !seenIds.has(a.id));
-  }, [allArtists, selectedRegion, seenIds]);
+  }, [allArtists, selectedRegion, hijabOnly, seenIds]);
 
   const handleSwipeLeft = () => {
     if (deck[0]) setSeenIds(prev => new Set([...prev, deck[0].id]));
@@ -60,6 +68,11 @@ export default function Home() {
 
   const resetRegion = (region: Region) => {
     setSelectedRegion(region);
+    setSeenIds(new Set());
+  };
+
+  const toggleHijabFilter = () => {
+    setHijabOnly(prev => !prev);
     setSeenIds(new Set());
   };
 
@@ -141,7 +154,7 @@ export default function Home() {
         {/* Card stack + region filters */}
         <div className="flex flex-col items-center gap-5 w-full max-w-[400px]">
 
-          {/* Region filter buttons */}
+          {/* Region filter buttons + hijab toggle */}
           <div className="flex flex-wrap gap-2 justify-center w-full" data-testid="region-filters">
             {REGIONS.map(r => (
               <button
@@ -158,6 +171,20 @@ export default function Home() {
                 {r.label}
               </button>
             ))}
+
+            {/* Hijab Friendly toggle */}
+            <button
+              onClick={toggleHijabFilter}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                hijabOnly
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-white text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+              }`}
+              data-testid="button-filter-hijab"
+            >
+              <HijabIcon />
+              Hijab Friendly
+            </button>
           </div>
 
           {/* Card area */}
