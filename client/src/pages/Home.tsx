@@ -11,6 +11,8 @@ const HijabIcon = () => (
   </svg>
 );
 
+type ServicesFilter = 'all' | 'makeup' | 'makeup_hair';
+
 export default function Home() {
   const [, navigate] = useLocation();
   const [allArtists, setAllArtists] = useState<Artist[]>([]);
@@ -18,6 +20,7 @@ export default function Home() {
   const [selectedRegion, setSelectedRegion] = useState<Region>('all');
   const [hijabOnly, setHijabOnly] = useState(false);
   const [diversityFilter, setDiversityFilter] = useState<string>('all');
+  const [servicesFilter, setServicesFilter] = useState<ServicesFilter>('all');
   const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,15 +45,27 @@ export default function Home() {
     }
   }
 
-  // Filtered list based on selected region + hijab + diversity filters, minus already-seen cards
   const deck = useMemo(() => {
     let filtered = selectedRegion === 'all'
       ? allArtists
       : allArtists.filter(a => a.region === selectedRegion);
+
     if (hijabOnly) filtered = filtered.filter(a => a.hijabFriendly === true);
-    if (diversityFilter !== 'all') filtered = filtered.filter(a => (Array.isArray(a.diversity) ? a.diversity : []).includes(diversityFilter));
+
+    if (diversityFilter !== 'all') {
+      filtered = filtered.filter(a =>
+        (Array.isArray(a.diversity) ? a.diversity : []).includes(diversityFilter)
+      );
+    }
+
+    if (servicesFilter === 'makeup_hair') {
+      filtered = filtered.filter(a => a.services === 'makeup_hair');
+    } else if (servicesFilter === 'makeup') {
+      filtered = filtered.filter(a => !a.services || a.services === 'makeup');
+    }
+
     return filtered.filter(a => !seenIds.has(a.id));
-  }, [allArtists, selectedRegion, hijabOnly, diversityFilter, seenIds]);
+  }, [allArtists, selectedRegion, hijabOnly, diversityFilter, servicesFilter, seenIds]);
 
   const handleSwipeLeft = () => {
     if (deck[0]) setSeenIds(prev => new Set([...prev, deck[0].id]));
@@ -80,6 +95,11 @@ export default function Home() {
 
   const handleDiversityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setDiversityFilter(e.target.value);
+    setSeenIds(new Set());
+  };
+
+  const handleServicesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setServicesFilter(e.target.value as ServicesFilter);
     setSeenIds(new Set());
   };
 
@@ -158,10 +178,10 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Card stack + region filters */}
+        {/* Card stack + filters */}
         <div className="flex flex-col items-center gap-5 w-full max-w-[400px]">
 
-          {/* Region filter buttons + hijab toggle */}
+          {/* Filters */}
           <div className="flex flex-wrap gap-2 justify-center w-full" data-testid="region-filters">
             {REGIONS.map(r => (
               <button
@@ -209,6 +229,29 @@ export default function Home() {
                 {DIVERSITY_OPTIONS.map(opt => (
                   <option key={opt} value={opt}>{opt}</option>
                 ))}
+              </select>
+              <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                  <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+
+            {/* Services filter */}
+            <div className="relative">
+              <select
+                value={servicesFilter}
+                onChange={handleServicesChange}
+                className={`appearance-none pl-4 pr-8 py-2 rounded-full text-sm font-medium border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 ${
+                  servicesFilter !== 'all'
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-white text-muted-foreground border-border hover:border-primary/50 hover:text-foreground'
+                }`}
+                data-testid="select-services"
+              >
+                <option value="all">All Services</option>
+                <option value="makeup">Makeup only</option>
+                <option value="makeup_hair">Makeup + hair</option>
               </select>
               <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">

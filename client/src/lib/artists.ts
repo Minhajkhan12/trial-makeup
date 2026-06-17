@@ -1,11 +1,16 @@
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from './firebase';
 
+export type DayKey = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export type RecurringPattern = Record<DayKey, boolean>;
+
 export type Artist = {
   id: string;
   name: string;
   diversity: string[];
   location: string;
+  city?: string;
   trialPrice: number;
   weddingPrice: number;
   rating: number;
@@ -14,6 +19,18 @@ export type Artist = {
   images: string[];
   region: string;
   hijabFriendly?: boolean;
+  services?: 'makeup' | 'makeup_hair';
+  makeupTrialMin?: number;
+  makeupTrialMax?: number;
+  makeupWeddingMin?: number;
+  makeupWeddingMax?: number;
+  hairTrialMin?: number;
+  hairTrialMax?: number;
+  hairWeddingMin?: number;
+  hairWeddingMax?: number;
+  recurringPattern?: RecurringPattern;
+  dateOverrides?: Record<string, 'busy' | 'available'>;
+  uid?: string;
 };
 
 export const DIVERSITY_OPTIONS = [
@@ -33,14 +50,57 @@ export const REGIONS: { key: Region; label: string; collection: string }[] = [
   { key: 'waterloo', label: 'Greater Waterloo Region',   collection: 'Waterloo Artists' },
 ];
 
+export function normalizeCity(city: string): string {
+  return city.trim().toLowerCase();
+}
+
+export function cityToRegion(normalizedCity: string): string {
+  if (
+    normalizedCity.includes('winnipeg') ||
+    normalizedCity.includes('steinbach') ||
+    normalizedCity.includes('portage')
+  ) return 'winnipeg';
+
+  if (
+    normalizedCity.includes('toronto') ||
+    normalizedCity.includes('gta') ||
+    normalizedCity.includes('mississauga') ||
+    normalizedCity.includes('brampton') ||
+    normalizedCity.includes('scarborough') ||
+    normalizedCity.includes('etobicoke') ||
+    normalizedCity.includes('markham') ||
+    normalizedCity.includes('vaughan') ||
+    normalizedCity.includes('richmond hill') ||
+    normalizedCity.includes('oakville') ||
+    normalizedCity.includes('burlington') ||
+    normalizedCity.includes('ajax') ||
+    normalizedCity.includes('oshawa') ||
+    normalizedCity.includes('pickering') ||
+    normalizedCity.includes('durham')
+  ) return 'toronto';
+
+  if (
+    normalizedCity.includes('waterloo') ||
+    normalizedCity.includes('kitchener') ||
+    normalizedCity.includes('cambridge') ||
+    normalizedCity.includes('guelph')
+  ) return 'waterloo';
+
+  return 'other';
+}
+
 async function fetchFromCollection(collectionName: string, region: string): Promise<Artist[]> {
   try {
     const snapshot = await getDocs(collection(db, collectionName));
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      region,
-      ...doc.data(),
-    })) as Artist[];
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      const derivedRegion = data.city ? cityToRegion(normalizeCity(data.city)) : region;
+      return {
+        id: doc.id,
+        region: derivedRegion,
+        ...data,
+      };
+    }) as Artist[];
   } catch (err) {
     console.warn(`[Firestore] Failed to fetch from "${collectionName}":`, err);
     return [];

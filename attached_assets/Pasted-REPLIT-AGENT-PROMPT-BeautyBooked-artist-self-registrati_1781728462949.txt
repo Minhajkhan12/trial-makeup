@@ -1,0 +1,44 @@
+REPLIT AGENT PROMPT — BeautyBooked artist self-registration onboarding
+
+READ FIRST, BEFORE CHANGING ANYTHING:
+This is a live project with real production data (real artists already onboarded manually, e.g. Bailey Vanderveen, real Firestore rules, a working Stripe webhook integration). Before writing or changing any code:
+1. Inspect the current Firestore structure (existing city-based collections), existing components, and existing Storage rules. Do not assume — actually look.
+2. Do NOT touch, refactor, or "improve" the bride-facing swipe/discovery UI, Stripe webhook handler, or any file unrelated to artist onboarding. If you think something else needs fixing while you're in there, stop and ask first instead of changing it.
+3. Back up current Firestore data (export collections) before running any schema migration step below. Confirm the backup exists before proceeding.
+4. This stays on the same Firebase project already in use. Do not create a new Firebase project. Do not migrate any data to a different backend.
+
+GOAL
+Build a new self-serve onboarding flow so makeup artists can register themselves (instead of being manually onboarded), and reshape the Firestore schema so city is a flexible field instead of fixed per-city collections.
+
+SCHEMA CHANGE
+- Create one unified `artists` collection (replacing the separate Winnipeg/Toronto/Waterloo collections).
+- Migrate existing artist documents into `artists`, adding a `city` field from their original collection.
+- City field is free text, normalized (lowercase, trimmed) on write — no fixed list, no dropdown, no validation against named cities. Any city, anywhere, should be accepted.
+- Update bride-facing queries that currently hit the per-city collections to instead query `artists` filtered by city. Keep the bride-facing UI itself untouched — only the underlying query target changes.
+
+ONBOARDING FLOW — 5 screens
+1. Sign in with Google (Firebase Auth, signInWithPopup + GoogleAuthProvider). Use the existing project's OAuth config.
+2. Basics: name (required), city (free text, required), portfolio photos — 3 to 5 required, block progress until at least 3 are uploaded.
+3. Services & pricing:
+   - Toggle: "Makeup only" or "Makeup + hair." No hair-only option.
+   - If "Makeup only": show exactly 2 price fields — makeup trial price range (min/max), makeup wedding-day price range (min/max).
+   - If "Makeup + hair": show exactly 4 price fields — the 2 above, plus hair trial price range (min/max) and hair wedding-day price range (min/max). Hair fields must not render until "Makeup + hair" is selected.
+   - Validation: max must be greater than min on every range. No minimum price floor — any positive number is accepted for now (this is a known, intentional gap, not an oversight).
+   - This makeup/hair toggle must also drive a real filter on the bride-facing discovery side (a checkbox/filter for hair vs. makeup) — not just a label on the profile.
+4. Availability — one shared calendar per artist (same calendar regardless of makeup-only vs. makeup+hair):
+   - Optional recurring weekly pattern (e.g. mark default days off). Defaults to "available every day" if skipped.
+   - Specific date overrides on top of the pattern via a tap-to-toggle calendar (tap a date to mark it busy/available).
+   - Store as `recurringPattern: { mon: bool, ... }` and `dateOverrides: { "YYYY-MM-DD": "busy"|"available" }` — do not pre-populate or store every individual date.
+5. Profile goes live immediately on completion. No approval/review step.
+
+VISUAL DESIGN
+Audience is non-technical makeup artists, not developers. Premium, warm, beauty-brand feeling — not a generic SaaS form. Large tap targets, one clear step per screen, minimal jargon. A characterful/whimsical display font for headers is fine; body text, form labels, and error messages must use a clean, highly readable sans-serif — never sacrifice readability for style on functional text. Warm color palette (ivory/cream, deep berry or plum accent, soft blush) instead of generic white-and-blue corporate tones.
+
+EXPLICIT DO-NOT-DO LIST
+- Do not redesign or touch the bride-facing swipe/discovery interface beyond the minimal query change described above.
+- Do not advertise any onboarding time estimate (no "takes 5 minutes," no "under 9 minutes") anywhere in the UI copy. This has not been measured and should not be claimed.
+- Do not add a hair-only registration path.
+- Do not hardcode or validate against a fixed list of cities.
+- Do not add a manual review/approval gate before profiles go live.
+
+If anything here is ambiguous or you're about to make an assumption that affects data structure, stop and ask before proceeding rather than guessing.

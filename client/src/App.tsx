@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Saved from "@/pages/Saved";
 import CheckoutSuccess from "@/pages/CheckoutSuccess";
+import ArtistOnboard from "@/pages/ArtistOnboard";
 
 function Router() {
   return (
@@ -14,6 +15,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/saved" component={Saved} />
       <Route path="/checkout-success" component={CheckoutSuccess} />
+      <Route path="/artist/register" component={ArtistOnboard} />
       <Route component={NotFound} />
     </Switch>
   );
