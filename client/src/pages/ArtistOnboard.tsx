@@ -402,7 +402,7 @@ export default function ArtistOnboard() {
       <div className="w-full max-w-sm text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
           <Sparkles size={22} style={{ color: PLUM }} />
-          <span className="font-serif text-2xl font-semibold text-[#2D1B1B] tracking-wide">BeautyBooked</span>
+          <span className="font-serif text-2xl font-semibold text-[#2D1B1B] tracking-wide">Trial Makeup</span>
         </div>
 
         <h1 className="font-serif text-4xl font-semibold text-[#2D1B1B] mb-3 leading-tight">
@@ -436,7 +436,7 @@ export default function ArtistOnboard() {
         )}
 
         <p className="mt-8 text-xs text-[#9B7B8A] leading-relaxed">
-          By continuing, you agree to allow BeautyBooked to display your profile to brides searching in your area.
+          By continuing, you agree to allow Trial Makeup to display your profile to brides searching in your area.
         </p>
 
         <button
@@ -786,7 +786,7 @@ export default function ArtistOnboard() {
           className="w-full py-4 rounded-2xl text-white font-semibold text-base transition-all active:scale-95 shadow-lg hover:shadow-xl"
           style={{ backgroundColor: PLUM }}
         >
-          Browse BeautyBooked
+          Browse Trial Makeup
         </button>
       </div>
     </div>

@@ -64,7 +64,7 @@ export default function Saved() {
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Sparkles className="text-primary" size={20} />
-            <h1 className="text-xl font-serif font-semibold text-foreground tracking-wide">BeautyBooked</h1>
+            <h1 className="text-xl font-serif font-semibold text-foreground tracking-wide">Trial Makeup</h1>
           </div>
           <button
             onClick={() => navigate('/')}

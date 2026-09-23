@@ -17,7 +17,7 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("[BeautyBooked] Uncaught error:", error, info);
+    console.error("[TrialMakeup] Uncaught error:", error, info);
   }
 
   render() {

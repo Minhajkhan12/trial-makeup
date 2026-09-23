@@ -3,7 +3,7 @@ import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { db, storage } from '../lib/firebase';
 import { Sparkles, Upload, X, Loader2, Trash2, LogOut, Image, Plus, Star, MapPin, Eye, EyeOff } from 'lucide-react';
-import { Artist } from '../lib/artists';
+import { Artist, Region } from '../lib/artists';
 
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 
@@ -28,7 +28,7 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
           <div className="bg-primary/10 p-3 rounded-xl inline-flex mb-4">
             <Sparkles className="text-primary" size={32} />
           </div>
-          <h1 className="text-3xl font-serif font-bold mb-2">Beauty Booked</h1>
+          <h1 className="text-3xl font-serif font-bold mb-2">Trial Makeup</h1>
           <p className="text-muted-foreground">Admin Panel</p>
         </div>
 
@@ -71,6 +71,7 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
 }
 
 function ArtistForm({ onSaved }: { onSaved: () => void }) {
+  const [region, setRegion] = useState<Exclude<Region, 'all'>>('winnipeg');
   const [name, setName] = useState('');
   const [style, setStyle] = useState('');
   const [location, setLocation] = useState('');
@@ -132,6 +133,7 @@ function ArtistForm({ onSaved }: { onSaved: () => void }) {
         name,
         style,
         location,
+        region,
         trialPrice: Number(trialPrice),
         weddingPrice: Number(weddingPrice),
         rating: Number(rating),
@@ -143,6 +145,7 @@ function ArtistForm({ onSaved }: { onSaved: () => void }) {
       setName('');
       setStyle('');
       setLocation('');
+      setRegion('winnipeg');
       setTrialPrice('');
       setWeddingPrice('');
       setRating('5.0');
@@ -199,6 +202,20 @@ function ArtistForm({ onSaved }: { onSaved: () => void }) {
               data-testid="input-artist-location"
             />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-muted-foreground mb-2">Region</label>
+          <select
+            value={region}
+            onChange={(e) => setRegion(e.target.value as Exclude<Region, 'all'>)}
+            className="w-full px-4 py-3 bg-muted rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary/40 outline-none transition-all"
+            data-testid="select-artist-region"
+          >
+            <option value="winnipeg">Greater Winnipeg</option>
+            <option value="toronto">Greater Toronto Area</option>
+            <option value="waterloo">Greater Waterloo Region</option>
+            <option value="niagara">Niagara Region</option>
+          </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -433,7 +450,7 @@ export default function Admin() {
               <Sparkles className="text-primary" size={24} />
             </div>
             <div>
-              <h1 className="text-2xl font-serif font-bold text-foreground tracking-wide">Beauty Booked</h1>
+              <h1 className="text-2xl font-serif font-bold text-foreground tracking-wide">Trial Makeup</h1>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Admin Panel</p>
             </div>
           </div>

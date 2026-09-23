@@ -18,7 +18,7 @@ export async function registerRoutes(
     if (!email) return res.status(400).json({ error: 'Email is required.' });
     if (!artistId) return res.status(400).json({ error: 'Artist is required.' });
 
-    const origin = req.headers.origin || 'https://beautybooked.ca';
+    const origin = req.headers.origin || 'https://trialmakeup.com';
 
     try {
       const stripe = new Stripe(secretKey);

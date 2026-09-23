@@ -1,4 +1,4 @@
-# Beauty Booked
+# Trial Makeup
 
 A Tinder-style swipeable web app for finding bridal makeup artists. Built with React, Firebase (Firestore + Storage), and Express.
 
@@ -44,4 +44,4 @@ Each document has: `name`, `style`, `location`, `trialPrice`, `weddingPrice`, `r
 - Target: Autoscale
 - Build: `npm run build`
 - Run: `npm run start`
-- Published at: beautybooked.replit.app
+- Custom domain: trialmakeup.com

@@ -119,7 +119,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Sparkles className="text-primary" size={20} />
-            <h1 className="text-xl font-serif font-semibold text-foreground tracking-wide">BeautyBooked</h1>
+            <h1 className="text-xl font-serif font-semibold text-foreground tracking-wide">Trial Makeup</h1>
           </div>
           <div className="flex items-center gap-5">
             <button
@@ -150,7 +150,7 @@ export default function Home() {
           </h2>
 
           <p className="text-[15px] text-muted-foreground leading-relaxed mb-7">
-            Trial first, commitment later. Every artist on BeautyBooked is handpicked for responsiveness and quality — no endless inquiry forms. Just real conversations with artists you can trust.
+            Trial first, commitment later. Every artist on Trial Makeup is handpicked for responsiveness and quality — no endless inquiry forms. Just real conversations with artists you can trust.
           </p>
 
           <div className="space-y-3 mb-8">
@@ -183,7 +183,7 @@ export default function Home() {
           </div>
 
           <p className="text-xs text-muted-foreground text-center tracking-wide">
-            Join <span className="text-foreground font-semibold">200+ brides</span> who found their artist on BeautyBooked
+            Join <span className="text-foreground font-semibold">200+ brides</span> who found their artist on Trial Makeup
           </p>
         </div>
 

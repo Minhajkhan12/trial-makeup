@@ -99,7 +99,7 @@ export default function CheckoutSuccess() {
       <header className="px-6 py-4 border-b border-border bg-white/90 backdrop-blur-sm">
         <div className="flex items-center gap-2.5">
           <Sparkles className="text-primary" size={20} />
-          <h1 className="text-xl font-serif font-semibold tracking-wide">BeautyBooked</h1>
+          <h1 className="text-xl font-serif font-semibold tracking-wide">Trial Makeup</h1>
         </div>
       </header>
 
