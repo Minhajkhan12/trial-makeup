@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Sparkles, MapPin, Star, Trash2, ArrowLeft, Loader2, ShoppingBag, CheckCircle2 } from 'lucide-react';
 import { Artist } from '../lib/artists';
+import { trackEvent } from '../lib/analytics';
 
 export default function Saved() {
   const [, navigate] = useLocation();
@@ -19,6 +20,7 @@ export default function Saved() {
   const selectedArtist = savedArtists.find(a => a.id === selectedId) ?? null;
 
   const removeArtist = (id: string) => {
+    trackEvent('artist_removed_from_saved');
     const updated = savedArtists.filter(a => a.id !== id);
     setSavedArtists(updated);
     localStorage.setItem('savedArtists', JSON.stringify(updated));
@@ -45,7 +47,10 @@ export default function Saved() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Checkout failed.');
-      if (data.url) window.location.href = data.url;
+      if (data.url) {
+        trackEvent('checkout_started', { source: 'saved_artists' });
+        window.location.href = data.url;
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -100,7 +105,10 @@ export default function Saved() {
                 return (
                   <div
                     key={artist.id}
-                    onClick={() => setSelectedId(artist.id)}
+                     onClick={() => {
+                       if (selectedId !== artist.id) trackEvent('trial_artist_selected', { region: artist.region || 'other' });
+                       setSelectedId(artist.id);
+                     }}
                     className={`bg-white rounded-2xl border-2 p-4 flex gap-4 items-center shadow-sm cursor-pointer transition-all ${
                       isSelected
                         ? 'border-primary shadow-md ring-2 ring-primary/10'

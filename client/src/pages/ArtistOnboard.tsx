@@ -9,6 +9,7 @@ import {
 } from 'date-fns';
 import { auth, db, storage } from '../lib/firebase';
 import { normalizeCity, cityToRegion, DayKey, RecurringPattern } from '../lib/artists';
+import { trackEvent } from '../lib/analytics';
 import { ChevronLeft, ChevronRight, Camera, X, CheckCircle2, Loader2, ArrowRight, Sparkles } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -110,6 +111,7 @@ export default function ArtistOnboard() {
       setUser(result.user);
       setForm(f => ({ ...f, name: result.user.displayName || '' }));
       setStep(1);
+      trackEvent('artist_registration_signed_in');
     } catch (err: any) {
       if (err.code === 'auth/popup-closed-by-user') {
         setAuthError('Sign-in was cancelled. Please try again.');
@@ -202,6 +204,7 @@ export default function ArtistOnboard() {
     if (step === 3) {
       await handleSubmit();
     } else {
+      trackEvent('artist_registration_step_completed', { step });
       setStep(s => s + 1);
     }
   };
@@ -257,6 +260,7 @@ export default function ArtistOnboard() {
       };
 
       await addDoc(collection(db, 'artists'), artistData);
+      trackEvent('artist_profile_published', { region, services: form.services });
       setStep(4);
     } catch (err: any) {
       setSubmitError('Something went wrong saving your profile. Please try again.');

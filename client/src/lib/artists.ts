@@ -16,6 +16,7 @@ export type Artist = {
   rating: number;
   reviews: number;
   bio: string;
+  style?: string;
   images: string[];
   region: string;
   hijabFriendly?: boolean;

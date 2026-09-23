@@ -4,6 +4,7 @@ import { useLocation } from 'wouter';
 import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote, MapPin } from 'lucide-react';
 import { SwipeCard } from '../components/SwipeCard';
 import { fetchArtists, Artist, REGIONS, Region, DIVERSITY_OPTIONS } from '../lib/artists';
+import { trackEvent } from '../lib/analytics';
 
 const HijabIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -68,7 +69,10 @@ export default function Home() {
   }, [allArtists, selectedRegion, hijabOnly, diversityFilter, servicesFilter, seenIds]);
 
   const handleSwipeLeft = () => {
-    if (deck[0]) setSeenIds(prev => new Set([...prev, deck[0].id]));
+    if (deck[0]) {
+      trackEvent('artist_passed', { region: selectedRegion, services: servicesFilter });
+      setSeenIds(prev => new Set(Array.from(prev).concat(deck[0].id)));
+    }
   };
 
   const handleSwipeRight = () => {
@@ -79,26 +83,31 @@ export default function Home() {
       const updated = [...existing, artist];
       localStorage.setItem('savedArtists', JSON.stringify(updated));
       setSavedCount(updated.length);
+      trackEvent('artist_saved', { region: artist.region || 'other', services: artist.services || 'makeup' });
     }
-    setSeenIds(prev => new Set([...prev, artist.id]));
+    setSeenIds(prev => new Set(Array.from(prev).concat(artist.id)));
   };
 
   const resetRegion = (region: Region) => {
+    if (region !== selectedRegion) trackEvent('browse_filter_changed', { filter: 'region', value: region });
     setSelectedRegion(region);
     setSeenIds(new Set());
   };
 
   const toggleHijabFilter = () => {
+    trackEvent('browse_filter_changed', { filter: 'hijab_friendly', value: !hijabOnly });
     setHijabOnly(prev => !prev);
     setSeenIds(new Set());
   };
 
   const handleDiversityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    trackEvent('browse_filter_changed', { filter: 'diversity', value: e.target.value === 'all' ? 'cleared' : 'applied' });
     setDiversityFilter(e.target.value);
     setSeenIds(new Set());
   };
 
   const handleServicesChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    trackEvent('browse_filter_changed', { filter: 'services', value: e.target.value });
     setServicesFilter(e.target.value as ServicesFilter);
     setSeenIds(new Set());
   };
@@ -114,7 +123,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-5">
             <button
-              onClick={() => navigate('/saved')}
+              onClick={() => { trackEvent('saved_list_opened', { source: 'home' }); navigate('/saved'); }}
               className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-sm"
               data-testid="button-nav-saved"
             >

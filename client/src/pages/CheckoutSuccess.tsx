@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { CheckCircle, Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { trackEvent } from '../lib/analytics';
 
 interface BookingData {
   email: string;
@@ -52,6 +53,11 @@ export default function CheckoutSuccess() {
         }
 
         localStorage.removeItem('savedArtists');
+        const trackedSession = sessionStorage.getItem('analytics_paid_session');
+        if (trackedSession !== sessionId) {
+          trackEvent('trial_booking_confirmed', { amount: bookingData.amountPaid });
+          sessionStorage.setItem('analytics_paid_session', sessionId);
+        }
         setStatus('confirmed');
       })
       .catch(() => setStatus('error'));
