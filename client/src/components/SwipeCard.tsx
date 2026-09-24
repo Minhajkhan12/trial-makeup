@@ -109,7 +109,7 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
       )}
 
       {/* Bottom info overlay */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 px-5 pt-6 pb-[72px]">
+      <div className="absolute bottom-0 left-0 right-0 z-10 px-4 sm:px-5 pt-6 pb-[65px] sm:pb-[72px]">
 
         {/* Dot indicators */}
         {total > 1 && (
@@ -126,7 +126,7 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
         )}
 
         {/* Name */}
-        <h2 className="text-[2rem] font-serif font-semibold text-white leading-tight mb-1 drop-shadow-sm">
+        <h2 className="text-[1.6rem] sm:text-[2rem] font-serif font-semibold text-white leading-tight mb-1 drop-shadow-sm">
           {artist.name}
         </h2>
 
