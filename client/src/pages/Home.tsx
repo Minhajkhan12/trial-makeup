@@ -6,6 +6,8 @@ import { SwipeCard } from '../components/SwipeCard';
 import { fetchArtists, Artist, REGIONS, Region } from '../lib/artists';
 import { trackEvent } from '../lib/analytics';
 
+const NIAGARA_LAUNCH = new Date('2026-09-27T00:00:00-04:00').getTime();
+
 export default function Home() {
   const [, navigate] = useLocation();
   const [allArtists, setAllArtists] = useState<Artist[]>([]);
@@ -42,6 +44,7 @@ export default function Home() {
 
     return filtered.filter(a => !seenIds.has(a.id));
   }, [allArtists, selectedRegion, seenIds]);
+  const niagaraComingSoon = selectedRegion === 'niagara' && Date.now() < NIAGARA_LAUNCH;
 
   const handleSwipeLeft = () => {
     if (deck[0]) {
@@ -158,7 +161,9 @@ export default function Home() {
                 className="w-full appearance-none rounded-xl border border-border bg-white py-2.5 pl-11 pr-9 text-sm font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
                 data-testid="select-region"
               >
-                {REGIONS.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+                {REGIONS.filter(r => r.key !== 'waterloo').map(r => (
+                  <option key={r.key} value={r.key}>{r.label}</option>
+                ))}
               </select>
               <span className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground" aria-hidden="true">⌄</span>
             </div>
@@ -185,6 +190,16 @@ export default function Home() {
                 >
                   Try Again
                 </button>
+              </div>
+            ) : niagaraComingSoon || (selectedRegion === 'niagara' && deck.length === 0) ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+                <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
+                  <Sparkles className="text-primary" size={34} />
+                </div>
+                <h2 className="text-2xl font-serif font-semibold mb-2">Niagara Region</h2>
+                <p className="text-muted-foreground text-sm">
+                  {niagaraComingSoon ? 'Version 1 launches Sunday, September 27. Stay tuned.' : 'Stay tuned for makeup artists.'}
+                </p>
               </div>
             ) : allArtists.length === 0 ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
