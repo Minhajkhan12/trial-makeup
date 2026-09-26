@@ -44,7 +44,7 @@ export function ArtistCard({ artist, saved, onToggleSaved, onReserveTrial }: Art
       data-testid={`card-artist-${artist.id}`}
     >
       <div
-        className="relative aspect-[4/3] overflow-hidden bg-muted touch-pan-y select-none"
+        className="relative aspect-[4/5] overflow-hidden bg-[#F5F3F2] touch-pan-y select-none"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={() => { pointerStart.current = null; }}
@@ -54,7 +54,7 @@ export function ArtistCard({ artist, saved, onToggleSaved, onReserveTrial }: Art
         <img
           src={images[currentImageIndex]}
           alt={`${artist.name} portfolio photo ${currentImageIndex + 1}`}
-          className="h-full w-full object-cover pointer-events-none"
+          className="h-full w-full object-contain pointer-events-none"
           draggable={false}
           data-testid="image-artist-hero"
         />
