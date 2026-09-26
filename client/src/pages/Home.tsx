@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useLocation } from 'wouter';
 import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote, MapPin } from 'lucide-react';
 import { SwipeCard } from '../components/SwipeCard';
+import { ReserveTrialModal } from '../components/ReserveTrialModal';
 import { fetchArtists, Artist, REGIONS, Region } from '../lib/artists';
 import { trackEvent } from '../lib/analytics';
 
@@ -16,6 +17,14 @@ export default function Home() {
   const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reservingArtist, setReservingArtist] = useState<Artist | null>(null);
+  const [confirmation, setConfirmation] = useState('');
+
+  useEffect(() => {
+    if (!confirmation) return;
+    const timer = window.setTimeout(() => setConfirmation(''), 10000);
+    return () => window.clearTimeout(timer);
+  }, [confirmation]);
 
   useEffect(() => {
     loadArtists();
@@ -74,6 +83,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col w-full">
+      {confirmation && (
+        <div
+          role="status"
+          className="fixed top-16 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-xl border border-primary/30 bg-white px-5 py-4 text-sm font-medium text-foreground shadow-2xl"
+          data-testid="text-reservation-confirmation"
+        >
+          <button
+            type="button"
+            onClick={() => setConfirmation('')}
+            aria-label="Dismiss confirmation"
+            className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground hover:text-foreground"
+          >
+            <X size={14} />
+          </button>
+          <p className="pr-4">{confirmation}</p>
+        </div>
+      )}
       {/* Header */}
       <header className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-white/90 backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -216,6 +242,10 @@ export default function Home() {
                     <SwipeCard
                       key={artist.id}
                       artist={artist}
+                      onReserveTrial={() => {
+                        trackEvent('trial_reservation_opened', { region: artist.region || 'other' });
+                        setReservingArtist(artist);
+                      }}
                       active={index === 0}
                       onSwipeLeft={handleSwipeLeft}
                       onSwipeRight={handleSwipeRight}
@@ -257,6 +287,16 @@ export default function Home() {
           </div>
         </div>
       </main>
+      {reservingArtist && (
+        <ReserveTrialModal
+          artist={reservingArtist}
+          onClose={() => setReservingArtist(null)}
+          onConfirmed={artistName => {
+            setReservingArtist(null);
+            setConfirmation(`Thanks! We'll text you within the hour to confirm your trial with ${artistName}.`);
+          }}
+        />
+      )}
     </div>
   );
 }

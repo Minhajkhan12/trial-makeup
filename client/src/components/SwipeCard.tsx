@@ -7,10 +7,11 @@ interface SwipeCardProps {
   artist: Artist;
   onSwipeLeft: () => void;
   onSwipeRight: () => void;
+  onReserveTrial: () => void;
   active: boolean;
 }
 
-export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCardProps) {
+export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, onReserveTrial, active }: SwipeCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-250, 250], [-12, 12]);
@@ -109,7 +110,7 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
       )}
 
       {/* Bottom info overlay */}
-      <div className="absolute bottom-0 left-0 right-0 z-10 px-4 sm:px-5 pt-6 pb-[65px] sm:pb-[72px]">
+      <div className="absolute bottom-0 left-0 right-0 z-10 px-4 sm:px-5 pt-6 pb-4">
 
         {/* Dot indicators */}
         {total > 1 && (
@@ -156,7 +157,7 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
         </div>
 
         {/* Pricing */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-5 mb-4">
           <div>
             <p className="text-white/45 text-[10px] uppercase tracking-widest mb-0.5">Trial</p>
             <p className="text-white font-semibold">${artist.trialPrice}</p>
@@ -167,24 +168,37 @@ export function SwipeCard({ artist, onSwipeLeft, onSwipeRight, active }: SwipeCa
             <p className="text-white font-semibold">${artist.weddingPrice}</p>
           </div>
         </div>
-      </div>
-
-      {/* X and Heart buttons — bottom corners */}
-      <div className="absolute bottom-5 left-5 right-5 z-20 flex justify-between pointer-events-none">
-        <button
-          onClick={(e) => { e.stopPropagation(); onSwipeLeft(); }}
-          className="pointer-events-auto w-11 h-11 rounded-full bg-black/25 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-red-500/70 transition-all active:scale-90"
-          data-testid="button-swipe-left"
-        >
-          <X size={18} className="text-white" />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onSwipeRight(); }}
-          className="pointer-events-auto w-11 h-11 rounded-full bg-black/25 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-rose-400/70 transition-all active:scale-90"
-          data-testid="button-swipe-right"
-        >
-          <Heart size={16} className="text-white fill-white" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onSwipeLeft(); }}
+            aria-label="Pass on this artist"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white/80 hover:bg-black/60"
+            data-testid="button-swipe-left"
+          >
+            <X size={16} />
+          </button>
+          <button
+            type="button"
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onReserveTrial(); }}
+            className="flex-1 rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-[#5C2D4A] shadow-lg hover:bg-[#FFF1F7] active:scale-[0.98]"
+            data-testid="button-reserve-trial"
+          >
+            Reserve Trial
+          </button>
+          <button
+            type="button"
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onSwipeRight(); }}
+            aria-label="Save this artist for later"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 bg-black/30 text-white/80 hover:bg-black/60"
+            data-testid="button-swipe-right"
+          >
+            <Heart size={15} />
+          </button>
+        </div>
       </div>
     </motion.div>
   );
