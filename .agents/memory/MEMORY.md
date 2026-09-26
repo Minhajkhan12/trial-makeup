@@ -1,0 +1,1 @@
+- [Artist browsing](artist-browsing.md) — keep discovery independent of save/reserve; hero swipes browse photos only.

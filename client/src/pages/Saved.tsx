@@ -88,7 +88,7 @@ export default function Saved() {
               <Sparkles className="text-primary" size={34} />
             </div>
             <h3 className="text-xl font-serif font-semibold mb-2">No artists saved yet</h3>
-            <p className="text-muted-foreground mb-6">Swipe right on artists you love to save them here.</p>
+            <p className="text-muted-foreground mb-6">Tap Save for Later on artists you love to see them here.</p>
             <button
               onClick={() => navigate('/')}
               className="bg-primary text-primary-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all"

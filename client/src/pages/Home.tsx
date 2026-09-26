@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote, MapPin } from 'lucide-react';
-import { SwipeCard } from '../components/SwipeCard';
+import { Sparkles, UserCircle, X, Heart, MessageCircle, Loader2, Quote, MapPin, Images } from 'lucide-react';
+import { ArtistCard } from '../components/ArtistCard';
 import { ReserveTrialModal } from '../components/ReserveTrialModal';
 import { fetchArtists, Artist, REGIONS, Region } from '../lib/artists';
 import { trackEvent } from '../lib/analytics';
@@ -12,9 +11,8 @@ const NIAGARA_LAUNCH = new Date('2026-09-27T00:00:00-04:00').getTime();
 export default function Home() {
   const [, navigate] = useLocation();
   const [allArtists, setAllArtists] = useState<Artist[]>([]);
-  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [selectedRegion, setSelectedRegion] = useState<Region>('all');
-  const [savedCount, setSavedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reservingArtist, setReservingArtist] = useState<Artist | null>(null);
@@ -28,8 +26,8 @@ export default function Home() {
 
   useEffect(() => {
     loadArtists();
-    const saved = JSON.parse(localStorage.getItem('savedArtists') || '[]');
-    setSavedCount(saved.length);
+    const saved: Artist[] = JSON.parse(localStorage.getItem('savedArtists') || '[]');
+    setSavedIds(new Set(saved.map(artist => artist.id)));
   }, []);
 
   async function loadArtists() {
@@ -38,7 +36,6 @@ export default function Home() {
       setError(null);
       const artists = await fetchArtists();
       setAllArtists(artists);
-      setSeenIds(new Set());
     } catch (err: any) {
       setError(err.message || 'Failed to load artists');
     } finally {
@@ -46,43 +43,31 @@ export default function Home() {
     }
   }
 
-  const deck = useMemo(() => {
-    const filtered = selectedRegion === 'all'
-      ? allArtists
-      : allArtists.filter(a => a.region === selectedRegion);
-
-    return filtered.filter(a => !seenIds.has(a.id));
-  }, [allArtists, selectedRegion, seenIds]);
+  const visibleArtists = selectedRegion === 'all'
+    ? allArtists
+    : allArtists.filter(artist => artist.region === selectedRegion);
   const niagaraComingSoon = selectedRegion === 'niagara' && Date.now() < NIAGARA_LAUNCH;
 
-  const handleSwipeLeft = () => {
-    if (deck[0]) {
-      trackEvent('artist_passed', { region: selectedRegion });
-      setSeenIds(prev => new Set(Array.from(prev).concat(deck[0].id)));
-    }
-  };
-
-  const handleSwipeRight = () => {
-    const artist = deck[0];
-    if (!artist) return;
+  const toggleSaved = (artist: Artist) => {
     const existing: Artist[] = JSON.parse(localStorage.getItem('savedArtists') || '[]');
-    if (!existing.find(a => a.id === artist.id)) {
-      const updated = [...existing, artist];
-      localStorage.setItem('savedArtists', JSON.stringify(updated));
-      setSavedCount(updated.length);
+    const wasSaved = existing.some(saved => saved.id === artist.id);
+    const updated = wasSaved ? existing.filter(saved => saved.id !== artist.id) : [...existing, artist];
+    localStorage.setItem('savedArtists', JSON.stringify(updated));
+    setSavedIds(new Set(updated.map(saved => saved.id)));
+    if (wasSaved) {
+      trackEvent('artist_removed_from_saved');
+    } else {
       trackEvent('artist_saved', { region: artist.region || 'other', services: artist.services || 'makeup' });
     }
-    setSeenIds(prev => new Set(Array.from(prev).concat(artist.id)));
   };
 
   const resetRegion = (region: Region) => {
     if (region !== selectedRegion) trackEvent('browse_filter_changed', { filter: 'region', value: region });
     setSelectedRegion(region);
-    setSeenIds(new Set());
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col w-full">
+    <div className="h-dvh overflow-y-auto bg-background flex flex-col w-full">
       {confirmation && (
         <div
           role="status"
@@ -113,8 +98,8 @@ export default function Home() {
               className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-sm"
               data-testid="button-nav-saved"
             >
-              <Heart size={17} className={savedCount > 0 ? 'fill-primary text-primary' : ''} />
-              <span className="hidden sm:inline">Saved ({savedCount})</span>
+              <Heart size={17} className={savedIds.size > 0 ? 'fill-primary text-primary' : ''} />
+              <span className="hidden sm:inline">Saved ({savedIds.size})</span>
             </button>
             <button className="hidden sm:flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors text-sm">
               <MessageCircle size={17} />
@@ -127,7 +112,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex-1 w-full flex items-start lg:items-center justify-center px-3 py-3 sm:px-6 sm:py-8 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+      <main className="flex-1 w-full flex items-start justify-center px-3 py-3 sm:px-6 sm:py-8 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
 
         {/* Left panel — desktop only */}
         <div className="hidden lg:flex flex-col max-w-xs mr-14 shrink-0">
@@ -145,17 +130,17 @@ export default function Home() {
                 <Heart size={18} className="text-primary fill-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">Swipe right to save</p>
-                <p className="text-xs text-muted-foreground">Add to your shortlist</p>
+                <p className="text-sm font-medium">Save your favorites</p>
+                <p className="text-xs text-muted-foreground">Tap Save for Later to build your shortlist</p>
               </div>
             </div>
             <div className="flex items-center gap-3 p-3.5 bg-white rounded-2xl border border-border shadow-sm">
               <div className="w-9 h-9 rounded-full bg-gray-50 flex items-center justify-center shrink-0">
-                <X size={18} className="text-muted-foreground" />
+                  <Images size={18} className="text-muted-foreground" />
               </div>
               <div>
-                <p className="text-sm font-medium">Swipe left to pass</p>
-                <p className="text-xs text-muted-foreground">See the next artist</p>
+                <p className="text-sm font-medium">Explore every portfolio</p>
+                <p className="text-xs text-muted-foreground">Swipe photos, then scroll to more artists</p>
               </div>
             </div>
           </div>
@@ -173,7 +158,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Card stack + filters */}
+        {/* Artist list + region filter */}
         <div className="flex flex-col items-center gap-3 sm:gap-5 w-full max-w-[400px]">
 
           {/* Region filter */}
@@ -195,15 +180,15 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Card area */}
-          <div className="relative w-full h-[min(67svh,600px)] min-h-[420px] sm:h-[72vh] sm:min-h-[560px]">
+          {/* Artist cards */}
+          <div className="w-full space-y-5">
             {loading ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white rounded-3xl shadow-xl border border-border">
+              <div className="min-h-[400px] flex flex-col items-center justify-center bg-white rounded-3xl shadow-xl border border-border">
                 <Loader2 className="animate-spin text-primary mb-4" size={44} />
                 <p className="text-muted-foreground">Loading artists...</p>
               </div>
             ) : error ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+              <div className="min-h-[400px] flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
                 <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4">
                   <X className="text-red-400" size={30} />
                 </div>
@@ -217,8 +202,8 @@ export default function Home() {
                   Try Again
                 </button>
               </div>
-            ) : niagaraComingSoon || (selectedRegion === 'niagara' && deck.length === 0) ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+            ) : niagaraComingSoon || (selectedRegion === 'niagara' && visibleArtists.length === 0) ? (
+              <div className="min-h-[400px] flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
                   <Sparkles className="text-primary" size={34} />
                 </div>
@@ -227,8 +212,8 @@ export default function Home() {
                   {niagaraComingSoon ? 'Version 1 launches Sunday, September 27. Stay tuned.' : 'Stay tuned for makeup artists.'}
                 </p>
               </div>
-            ) : allArtists.length === 0 ? (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
+            ) : visibleArtists.length === 0 ? (
+              <div className="min-h-[400px] flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
                 <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
                   <Sparkles className="text-primary" size={34} />
                 </div>
@@ -236,53 +221,18 @@ export default function Home() {
                 <p className="text-muted-foreground text-sm">Check back soon — we're adding amazing makeup artists to your area.</p>
               </div>
             ) : (
-              <AnimatePresence>
-                {deck.length > 0 ? (
-                  deck.map((artist, index) => (
-                    <SwipeCard
-                      key={artist.id}
-                      artist={artist}
-                      onReserveTrial={() => {
-                        trackEvent('trial_reservation_opened', { region: artist.region || 'other' });
-                        setReservingArtist(artist);
-                      }}
-                      active={index === 0}
-                      onSwipeLeft={handleSwipeLeft}
-                      onSwipeRight={handleSwipeRight}
-                    />
-                  )).reverse()
-                ) : (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 bg-white rounded-3xl shadow-xl border border-border">
-                    <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-5">
-                      <Sparkles className="text-primary" size={34} />
-                    </div>
-                    <h2 className="text-2xl font-serif font-semibold mb-2">You're all caught up!</h2>
-                    <p className="text-muted-foreground text-sm mb-7">
-                      {selectedRegion === 'all'
-                        ? 'More artists coming soon.'
-                        : 'No more artists in this region. Try another area or view all.'}
-                    </p>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      <button
-                        onClick={() => setSeenIds(new Set())}
-                        className="bg-primary text-primary-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:bg-primary/90 transition-all shadow-md active:scale-95"
-                        data-testid="button-reset-deck"
-                      >
-                        Start Over
-                      </button>
-                      {selectedRegion !== 'all' && (
-                        <button
-                          onClick={() => resetRegion('all')}
-                          className="bg-white border border-border text-foreground px-7 py-2.5 rounded-full text-sm font-medium hover:border-primary/50 transition-all"
-                          data-testid="button-view-all"
-                        >
-                          View All Regions
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </AnimatePresence>
+              visibleArtists.map(artist => (
+                <ArtistCard
+                  key={artist.id}
+                  artist={artist}
+                  saved={savedIds.has(artist.id)}
+                  onToggleSaved={() => toggleSaved(artist)}
+                  onReserveTrial={() => {
+                    trackEvent('trial_reservation_opened', { region: artist.region || 'other' });
+                    setReservingArtist(artist);
+                  }}
+                />
+              ))
             )}
           </div>
         </div>
